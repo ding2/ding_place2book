@@ -595,10 +595,17 @@ function ding_place2book_build_xml($node, $service_settings) {
 
   //-- set location data --
   // If library has been selected, use location data from the library.
-  // @todo: Use entity_metadata_wrapper to retrieve field information in this
-  // function. Especially relevant at this point.
-  $og_group_ref = field_get_items('node', $node, 'og_group_ref');
-  $library_id = $og_group_ref[0]['target_id'];
+  // It is possible to select more than one library.
+  // This makes no sense in a place2book context where only one location
+  // can be printed on the ticket. So let's choose the last one.
+
+  $wrapper = entity_metadata_wrapper('node', $node);
+
+  $library_id = 0;
+
+  foreach ($wrapper->og_group_ref->getIterator() as $delta => $library_wrapper) {
+    $library_id = $library_wrapper->getIdentifier();
+  }
 
   if ($library_id) {
     $libloc_result = db_query('SELECT   n.title,
